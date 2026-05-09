@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Failsafe to ensure images never break their containers */
+img {
+    max-width: 100%;
+    height: auto;
+}

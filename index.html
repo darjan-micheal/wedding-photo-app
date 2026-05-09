@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WeddingSnap Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/src/styles.css" rel="stylesheet" />
+  </head>
+  <body class="bg-gray-900 text-gray-100 h-screen flex flex-col font-sans overflow-hidden">
+    
+    <div id="startScreen" class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-8 absolute inset-0 z-10">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700">
+            <h1 class="text-3xl font-bold mb-6 text-[#0ABAB5] text-center">WeddingSnap</h1>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Event Name</label>
+                    <input type="text" id="eventNameInput" class="w-full bg-gray-700 border border-gray-600 rounded p-2 focus:border-[#0ABAB5] outline-none" placeholder="e.g. Smith Wedding">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">License Key</label>
+                    <input type="text" id="licenseKeyInput" class="w-full bg-gray-700 border border-gray-600 rounded p-2 font-mono focus:border-[#0ABAB5] outline-none" placeholder="WS-XXXX-XXXX-XXXX">
+                </div>
+                <button id="triggerStartBtn" class="w-full bg-[#0ABAB5] text-black font-bold py-3 rounded hover:bg-[#0cddcf] transition-colors mt-4">
+                    Verify & Boot System
+                </button>
+                <p id="startErrorText" class="text-red-400 text-sm text-center hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboardScreen" class="hidden flex-col h-full w-full">
+        <header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center shadow-md">
+        <div>
+            <h1 id="activeEventName" class="text-xl font-bold text-[#0ABAB5]">Active Event</h1>
+            <div class="text-sm text-gray-400 mt-1 flex items-center gap-4">
+            <span><span id="serverStatus" class="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span><span id="statusText">System Active</span></span>
+            <span class="ml-4 px-2 py-1 bg-gray-900 rounded text-xs font-mono text-gray-400 border border-gray-700">
+    Time Left: <span id="timeLeftDisplay" class="text-white font-bold">24:00:00</span>
+</span>
+            <span>Guests Connected: <span id="guestCount" class="font-bold text-white">0</span></span>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button id="qrBtn" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded font-medium transition-colors text-white">Show QR</button>
+            <button id="endEventBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors">End Event</button>
+        </div>
+        </header>
+
+        <main class="flex-1 overflow-hidden flex flex-col p-6">
+            <div class="flex justify-between items-end mb-4">
+                <div class="flex items-center gap-6">
+                    <h2 class="text-lg font-semibold text-gray-300 border-b-2 border-[#0ABAB5] pb-1">Review Queue (<span id="queueCount">0</span>)</h2>
+                    
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="autoApproveToggle" class="sr-only peer">
+                      <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0ABAB5]"></div>
+                      <span class="ml-3 text-sm font-medium text-gray-400">Auto-Approve</span>
+                    </label>
+                </div>
+                
+                <div class="flex gap-6 text-sm font-medium bg-gray-800 px-6 py-2 rounded-lg border border-gray-700 shadow-inner">
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-xs uppercase tracking-wider">Approved</span>
+                        <span id="statApproved" class="text-[#0ABAB5] text-lg font-bold">0</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-xs uppercase tracking-wider">Rejected</span>
+                        <span id="statRejected" class="text-red-400 text-lg font-bold">0</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-xs uppercase tracking-wider">Downloads</span>
+                        <span id="statDownloads" class="text-purple-400 text-lg font-bold">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <div id="pendingGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                </div>
+                
+                <div id="queueEmpty" class="h-full flex flex-col items-center justify-center text-gray-500 hidden">
+                    <svg class="w-16 h-16 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"></path></svg>
+                    <p>Queue is empty.</p>
+                    <p class="text-sm">Waiting for new photos from the camera...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="reportScreen" class="hidden flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-8 absolute inset-0 z-20">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700 text-center">
+            <h1 class="text-3xl font-bold mb-2 text-[#0ABAB5]">Event Concluded</h1>
+            <h2 id="reportEventName" class="text-xl mb-6 text-gray-400"></h2>
+            
+            <div class="grid grid-cols-2 gap-4 mb-8 text-left">
+                <div class="bg-gray-700 p-4 rounded">
+                    <p class="text-sm text-gray-400">Duration</p>
+                    <p id="reportDuration" class="text-2xl font-bold">0 min</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded">
+                    <p class="text-sm text-gray-400">Downloads</p>
+                    <p id="reportDownloads" class="text-2xl font-bold text-blue-400">0</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded">
+                    <p class="text-sm text-gray-400">Approved</p>
+                    <p id="reportApproved" class="text-2xl font-bold text-green-400">0</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded">
+                    <p class="text-sm text-gray-400">Rejected</p>
+                    <p id="reportRejected" class="text-2xl font-bold text-red-400">0</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-400 mb-2">Archive saved to:</p>
+            <p id="reportArchivePath" class="text-xs bg-gray-900 p-2 rounded font-mono break-all"></p>
+        </div>
+    </div>
+
+    <div id="qrModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+      <div class="bg-gray-800 p-8 rounded-xl border border-gray-600 flex flex-col items-center shadow-2xl">
+        <h2 class="text-2xl font-bold text-white mb-2">Scan to Join</h2>
+        <p id="qrUrlText" class="text-[#0ABAB5] font-mono mb-4 bg-gray-900 px-4 py-2 rounded">Loading...</p>
+        <div class="bg-white p-4 rounded-lg mb-6">
+          <canvas id="qrCanvas"></canvas>
+        </div>
+        <div class="flex gap-4 mb-6">
+          <button id="useMdnsBtn" class="bg-[#0ABAB5] text-black px-4 py-1 rounded font-bold text-sm transition-colors">Primary (.local)</button>
+          <button id="useRawIpBtn" class="bg-gray-700 text-white px-4 py-1 rounded font-bold text-sm transition-colors">Fallback (IP)</button>
+        </div>
+        <div class="flex gap-4">
+            <button id="closeQrBtn" class="bg-gray-600 hover:bg-gray-500 px-6 py-2 rounded font-bold text-white transition-colors">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="customAlert" class="fixed inset-0 z-50 bg-black/80 hidden items-center justify-center backdrop-blur-sm">
+        <div class="bg-gray-800 p-6 rounded-xl border border-gray-600 max-w-sm w-full text-center shadow-2xl">
+            <h3 class="text-xl font-bold text-red-400 mb-2">Notice</h3>
+            <p id="customAlertText" class="text-gray-300 mb-6 text-sm break-words"></p>
+            <button id="closeAlertBtn" class="bg-gray-700 text-white font-bold py-2 px-6 rounded hover:bg-gray-600 transition w-full">Dismiss</button>
+        </div>
+    </div>
+
+    <div id="customConfirm" class="fixed inset-0 z-50 bg-black/80 hidden items-center justify-center backdrop-blur-sm">
+        <div class="bg-gray-800 p-6 rounded-xl border border-gray-600 max-w-sm w-full text-center shadow-2xl">
+            <h3 class="text-xl font-bold text-[#0ABAB5] mb-2">Are you sure?</h3>
+            <p id="customConfirmText" class="text-gray-300 mb-6 text-sm"></p>
+            <div class="flex gap-4">
+                <button id="cancelConfirmBtn" class="flex-1 bg-gray-700 text-white font-bold py-2 rounded hover:bg-gray-600 transition">Cancel</button>
+                <button id="acceptConfirmBtn" class="flex-1 bg-red-500 text-white font-bold py-2 rounded hover:bg-red-600 transition">Yes, End Event</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

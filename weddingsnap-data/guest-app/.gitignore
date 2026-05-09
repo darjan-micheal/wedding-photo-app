@@ -1,0 +1,44 @@
+# ----------------------------------------------------------------------
+# 1. Node.js Dependencies (Ignored across all sub-folders)
+# ----------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+
+# ----------------------------------------------------------------------
+# 2. Rust & Tauri Build Artifacts (HEAVY FILES)
+# ----------------------------------------------------------------------
+src-tauri/target/
+src-tauri/gen/
+
+# ----------------------------------------------------------------------
+# 3. Environment Variables & Secrets
+# ----------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ----------------------------------------------------------------------
+# 4. Vite Frontend Builds
+# ----------------------------------------------------------------------
+dist/
+build/
+
+# ----------------------------------------------------------------------
+# 5. WeddingSnap Runtime Data & Media (CRITICAL FOR GITHUB LIMITS)
+# We ignore the photo directories and databases, but KEEP the guest-app!
+# ----------------------------------------------------------------------
+weddingsnap-data/events/
+weddingsnap-data/gallery/
+weddingsnap-data/incoming/
+weddingsnap-data/incoming_pending/
+weddingsnap-data/rejected/
+weddingsnap-data/*.db
+weddingsnap-data/*.db-shm
+weddingsnap-data/*.db-wal
+
+# ----------------------------------------------------------------------
+# 6. OS & Editor Configuration
+# ----------------------------------------------------------------------
+.vscode/
+.DS_Store
+Thumbs.db
