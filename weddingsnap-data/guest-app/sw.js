@@ -1,29 +1,42 @@
-const CACHE_NAME = 'weddingsnap-v1';
-const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/app.js',
-    '/manifest.json'
+const CACHE_NAME = 'weddingsnap-cache-v3'; // BUMPED TO V2
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/app.js',
+  '/style.css',
 ];
 
-self.addEventListener('install', (e) => {
-    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS)));
+self.addEventListener('install', event => {
+  // Force the waiting service worker to become the active service worker.
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+  );
 });
 
-self.addEventListener('fetch', (e) => {
-    const url = new URL(e.request.url);
+// THE FIX: Destroy the old v1 cache so the new app.js loads!
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  // Tell the active service worker to take control of the page immediately.
+  self.clients.claim();
+});
 
-    // Network-Only for dynamic data and Sockets
-    if (url.pathname.startsWith('/api/') || 
-        url.pathname.startsWith('/photos/') || 
-        url.pathname.startsWith('/download/') ||
-        url.pathname.startsWith('/socket.io/')) {
-        return; // Browser handles it normally
-    }
-
-    // Cache-First for static shell
-    e.respondWith(
-        caches.match(e.request).then(response => response || fetch(e.request))
-    );
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => {
+      if (response) return response;
+      return fetch(event.request);
+    })
+  );
 });

@@ -45,21 +45,30 @@ fastify.post('/api/guest-upload', async (req, reply) => {
     try {
         console.log("FASTIFY DEBUG: Incoming upload request received...");
         
-        const data = await req.file();
-        if (!data) {
-            console.log("FASTIFY DEBUG: Request contained no file data.");
-            return reply.status(400).send({ error: 'No file uploaded' });
+        const parts = req.parts();
+        let guestId = 'guest';
+        let filename = '';
+        let sizeKb = 0;
+
+        // Loop through the incoming data chunk by chunk
+        for await (const part of parts) {
+            if (part.type === 'field' && part.fieldname === 'guestId') {
+                guestId = part.value; // Safely grab the ID!
+            } else if (part.type === 'file') {
+                filename = `${guestId}_${Date.now()}.jpg`;
+                const savePath = path.join(PENDING_PATH, filename);
+                
+                console.log(`FASTIFY DEBUG: Streaming file to -> ${savePath}`);
+                await pump(part.file, fs.createWriteStream(savePath));
+                
+                const stats = fs.statSync(savePath);
+                sizeKb = Math.round(stats.size / 1024);
+            }
         }
 
-        const guestId = (data.fields && data.fields.guestId) ? data.fields.guestId.value : 'guest';
-        const filename = `${guestId}_${Date.now()}.jpg`;
-        const savePath = path.join(PENDING_PATH, filename);
-
-        console.log(`FASTIFY DEBUG: Streaming file to -> ${savePath}`);
-        await pump(data.file, fs.createWriteStream(savePath));
-
-        const stats = fs.statSync(savePath);
-        const sizeKb = Math.round(stats.size / 1024);
+        if (!filename) {
+            return reply.status(400).send({ error: 'No file uploaded' });
+        }
 
         process.stdout.write(JSON.stringify({ 
             event: 'guest_upload_received', 
@@ -72,7 +81,6 @@ fastify.post('/api/guest-upload', async (req, reply) => {
         return { status: 'success', filename: filename };
 
     } catch (err) {
-        // FATAL DEBUG: Catch Fastify multipart parsing errors
         console.error("FASTIFY FATAL ERROR:", err);
         return reply.status(500).send({ error: err.message });
     }

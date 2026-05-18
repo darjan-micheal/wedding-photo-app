@@ -118,6 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const eventData = await eventRes.json();
             eventNameEl.textContent = eventData.name;
 
+            // --- THE KILL SWITCH ---
+            if (eventData.guest_cam_enabled === false) {
+                document.getElementById('tabGuestCam').style.display = 'none';
+            }
+
             const photoRes = await fetch('/api/photos');
             allPhotos = await photoRes.json();
             
