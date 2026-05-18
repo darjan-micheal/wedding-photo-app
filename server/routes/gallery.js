@@ -8,9 +8,14 @@ module.exports = async function (fastify) {
       const files = fs.readdirSync(galleryPath)
         .filter(f => f.toLowerCase().endsWith('.jpg') || f.toLowerCase().endsWith('.jpeg'))
         .map(filename => {
-          // THE FIX: Derive the source and the specific guest ID directly from the filename!
+          // THE FIX: Correctly extract the actual guest ID block from the filename
           const isGuest = filename.startsWith('guest_');
-          const guestId = isGuest ? filename.split('_').slice(0, 2).join('_') : null;
+          let guestId = null;
+          if (isGuest) {
+            const parts = filename.split('_');
+            // Reconstruct the 'guest_abc123' identifier safely
+            guestId = `${parts[0]}_${parts[1]}`;
+          }
           
           return {
             id: filename, 
