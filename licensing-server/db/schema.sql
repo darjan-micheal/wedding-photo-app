@@ -12,3 +12,4 @@ CREATE TABLE IF NOT EXISTS license_keys (
     used_at TIMESTAMPTZ,
     expires_at TIMESTAMPTZ
 );
+

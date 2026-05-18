@@ -32,3 +32,8 @@ chrono = { version = "0.4", features = ["serde"] }
 local-ip-address = "0.6"
 mdns-sd = "0.13"
 reqwest = { version = "0.13.3", features = ["json"] }
+machine-uid = "0.3.0"
+tauri-plugin-deep-link = "2.0.0-rc"
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-store = "2.4.3"
